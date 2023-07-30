@@ -5,6 +5,7 @@ from django.shortcuts import resolve_url
 from apps.hr.forms import HrAuthenticationForm
 
 
+
 class HRLoginView(LoginView):
 
     form_class = HrAuthenticationForm

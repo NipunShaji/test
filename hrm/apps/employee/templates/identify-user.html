@@ -6,10 +6,28 @@
     <title>Clock In</title>
 </head>
 <body>
-    <button id="start-camera">Start Camera</button>
-    <video id="video" width="320" height="240" autoplay></video>
-    <button id="click-photo">Click Photo</button>
-    <canvas id="canvas" width="320" height="240"></canvas>
+    <div id="initial" >
+        <button id="start-camera">Start Camera</button>
+        <video id="video" width="320" height="240" autoplay></video>
+        <button id="click-photo">Clock In</button>
+        <canvas id="canvas" width="320" height="240"></canvas>
+        <!-- <button class="verfiy-user" style="display: none;">Verify</button> -->
+
+
+        <!-- hide these -->
+        <div> 
+            <form action="/employee/clockin/verify/" method="post" enctype="multipart/form-data" id="form">
+                <input type="file" name="image" id="image">
+                <input type="submit" value="Clock IN With file">
+            </form>
+        </div>
+        <!-- upto here -->
+    </div>
+
+
+    <div id="response">
+
+    </div>
 
 
     <script>
@@ -17,6 +35,19 @@
         let video = document.querySelector("#video");
         let click_button = document.querySelector("#click-photo");
         let canvas = document.querySelector("#canvas");
+        let verify = document.querySelector("#verify-user");
+        let test_form = document.getElementById('form');
+        let file_input = document.getElementById('image');
+        let response_area = document.getElementById('response');
+        let initial = document.getElementById('initial');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (file_input.files && file_input.files[0]){
+                console.log(file_input.files[0]);
+                submit_file(file_input.files[0]);
+            }
+        })
 
         camera_button.addEventListener('click', async function() {
             let stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
@@ -29,7 +60,39 @@
 
             // data url of the image
             console.log(image_data_url);
+            var file = null;
+            let blob = document.querySelector("#canvas").toBlob(function(blob) {
+                file = new File([blob], 'test.jpg', { type: 'image/jpeg' });
+            }, 'image/jpeg');
+
         });
+
+        function submit_file(image) {
+            let xhr = new XMLHttpRequest()
+                xhr.open("POST", "http://localhost:8000/employee/clockin/verify/");
+                let data = new FormData()
+                data.append('image',image);
+                console.log(data);
+                xhr.onload = () => {
+                    if (xhr.status == 404){
+                        response_area.innerText = "Unable to detect user";
+                    } else if (xhr.status != 200) { 
+                        response_area.innerText = "Something went wrong!!!";
+                        console.log(`Error ${xhr.status}: ${xhr.statusText}`);
+                    } else {
+                        console.log(xhr.response.length);
+                        console.log(xhr.response);
+                        console.log(xhr.getResponseHeader('content-type'))
+                        console.log(JSON.parse(xhr.response)['first_name'])
+                        response_data = JSON.parse(xhr.response)
+                        response_area.innerText = "Clocked In as "+response_data['first_name']+" "+response_data['last_name'];
+                    }
+                    initial.style['display'] = "none";
+                };
+                xhr.send(data)
+        }
+
+
     </script>
 </body>
 </html>
