@@ -64,7 +64,7 @@
             let blob = document.querySelector("#canvas").toBlob(function(blob) {
                 file = new File([blob], 'test.jpg', { type: 'image/jpeg' });
             }, 'image/jpeg');
-
+            submit_file(file);
         });
 
         function submit_file(image) {
